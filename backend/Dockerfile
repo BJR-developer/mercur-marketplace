@@ -44,5 +44,5 @@ ENV NODE_ENV=production
 # Expose port (Railway uses PORT environment variable)
 EXPOSE 9000
 
-# Start Medusa
-CMD ["yarn", "start"]
+# Start Medusa with migrations
+CMD ["sh", "-c", "npx medusa db:migrate && yarn start"]
