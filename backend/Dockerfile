@@ -25,6 +25,11 @@ RUN yarn build
 # Production image
 FROM node:20-slim AS runner
 
+# Install runtime dependencies for native modules
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Install production dependencies only
@@ -32,11 +37,10 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/yarn.lock* ./
 RUN yarn install --production --frozen-lockfile
 
-# Copy built files and necessary assets
-COPY --from=builder /app/.medusa/ ./.medusa/
-# Use glob to copy config files (ts and/or js)
-COPY --from=builder /app/medusa-config.* ./
-COPY --from=builder /app/src/ ./src/
+# Copy compiled build output from builder
+COPY --from=builder /app/.medusa/server/medusa-config.js ./
+COPY --from=builder /app/.medusa/server/src/ ./src/
+COPY --from=builder /app/.medusa/server/instrumentation.js ./
 
 # Set environment variables
 ENV NODE_ENV=production
