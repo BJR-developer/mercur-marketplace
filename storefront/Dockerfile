@@ -28,6 +28,8 @@ FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
 
 # Copy standalone build
 COPY --from=builder /app/.next/standalone ./
