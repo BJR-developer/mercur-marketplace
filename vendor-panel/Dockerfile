@@ -15,10 +15,8 @@ RUN yarn install
 COPY . .
 RUN yarn build:preview
 
-# Production stage
-FROM node:20-slim
-WORKDIR /app
-# Use npx to avoid global install issues
-COPY --from=builder /app/dist ./dist
-EXPOSE 3000
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
+# Production stage - Nginx is the industry standard for serving static frontends
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
