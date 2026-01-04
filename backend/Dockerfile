@@ -1,7 +1,7 @@
 # Use Node.js 20 base image
 FROM node:20 AS builder
 
-# Install python and other build essentials for native modules
+# Install build essentials
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -11,12 +11,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Install dependencies separately to leverage Docker cache
-COPY package.json ./
-COPY yarn.lock* ./
+# Install all dependencies for build
+COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-# Copy the rest of the application code
+# Copy search and other source code
 COPY . .
 
 # Build the Medusa project
@@ -32,15 +31,15 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Copy package.json and yarn.lock
+COPY --from=builder /app/package.json /app/yarn.lock ./
+
 # Install production dependencies only
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/yarn.lock* ./
 RUN yarn install --production --frozen-lockfile
 
-# Copy compiled build output from builder
-COPY --from=builder /app/.medusa/server/medusa-config.js ./
-COPY --from=builder /app/.medusa/server/src/ ./src/
-COPY --from=builder /app/.medusa/server/instrumentation.js ./
+# Copy built files from builder
+# We copy everything in .medusa/server to the root
+COPY --from=builder /app/.medusa/server/ ./
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -49,4 +48,5 @@ ENV NODE_ENV=production
 EXPOSE 9000
 
 # Start Medusa with migrations
-CMD ["sh", "-c", "npx medusa db:migrate && yarn start"]
+# Use npx medusa directly to avoid yarn overhead and potential path issues
+CMD ["sh", "-c", "npx medusa db:migrate && npx medusa start"]
