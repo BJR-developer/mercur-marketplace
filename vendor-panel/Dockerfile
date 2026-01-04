@@ -18,7 +18,7 @@ RUN yarn build:preview
 # Production stage
 FROM node:20-slim
 WORKDIR /app
-RUN npm install -g serve
+# Use npx to avoid global install issues
 COPY --from=builder /app/dist ./dist
 EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["npx", "serve", "-s", "dist", "-l", "3000"]

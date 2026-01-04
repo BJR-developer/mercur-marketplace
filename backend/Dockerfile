@@ -1,5 +1,5 @@
 # Use Node.js 20 base image
-FROM node:20-slim AS base
+FROM node:20 AS builder
 
 # Install python and other build essentials for native modules
 RUN apt-get update && apt-get install -y \
@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install dependencies separately to leverage Docker cache
-COPY package.json yarn.lock* ./
+COPY package.json ./
+COPY yarn.lock* ./
 RUN yarn install --frozen-lockfile
 
 # Copy the rest of the application code
@@ -27,13 +28,15 @@ FROM node:20-slim AS runner
 WORKDIR /app
 
 # Install production dependencies only
-COPY --from=base /app/package.json /app/yarn.lock* ./
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/yarn.lock* ./
 RUN yarn install --production --frozen-lockfile
 
 # Copy built files and necessary assets
-COPY --from=base /app/.medusa /app/.medusa
-COPY --from=base /app/medusa-config.ts /app/medusa-config.ts
-COPY --from=base /app/src /app/src
+COPY --from=builder /app/.medusa/ ./.medusa/
+# Use glob to copy config files (ts and/or js)
+COPY --from=builder /app/medusa-config.* ./
+COPY --from=builder /app/src/ ./src/
 
 # Set environment variables
 ENV NODE_ENV=production
