@@ -73,6 +73,10 @@ To integrate Stripe for the marketplace (Stripe Connect):
 
 1. Push your code with the new `Dockerfile` and `railway.json`.
 2. In Railway, click **"New"** -> **"GitHub Repo"**.
-3. Railway will prompt you to set up the 4 services defined in `railway.json`.
+3. Railway will start setting up the services. **IMPORTANT**: For each service, you MUST go to **Settings** -> **General** -> **Root Directory** and set it correctly:
+   - `mercur-backend` -> `/backend`
+   - `mercur-admin` -> `/admin-panel`
+   - `mercur-vendor` -> `/vendor-panel`
+   - `mercur-storefront` -> `/storefront`
 4. Add the environment variables to each service.
-5. Railway will automatically build and deploy.
+5. Railway will automatically build using the local `Dockerfile`.
