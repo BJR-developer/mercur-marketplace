@@ -47,6 +47,6 @@ ENV NODE_ENV=production
 # Expose port (Railway uses PORT environment variable)
 EXPOSE 9000
 
-# Start Medusa with migrations
+# Start Medusa with migrations and optional seeding
 # Use npx medusa directly to avoid yarn overhead and potential path issues
-CMD ["sh", "-c", "npx medusa db:migrate && npx medusa start"]
+CMD ["sh", "-c", "npx medusa db:migrate && if [ \"$MEDUSA_SEED\" = \"true\" ]; then npx medusa exec ./src/scripts/seed.ts; fi && npx medusa start"]
